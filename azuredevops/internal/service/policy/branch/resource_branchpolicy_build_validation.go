@@ -18,6 +18,7 @@ const (
 	queueOnSourceUpdateOnly = "queue_on_source_update_only"
 	validDuration           = "valid_duration"
 	filenamePatterns        = "filename_patterns"
+	policyType              = "policy_requirement"
 )
 
 type buildValidationPolicySettings struct {
@@ -27,6 +28,7 @@ type buildValidationPolicySettings struct {
 	QueueOnSourceUpdateOnly bool     `json:"queueOnSourceUpdateOnly"`
 	ValidDuration           int      `json:"validDuration"`
 	FilenamePatterns        []string `json:"filenamePatterns"`
+	PolicyType              string   `json:"policyType"`
 }
 
 // ResourceBranchPolicyBuildValidation schema and implementation for build validation policy resource
@@ -71,6 +73,11 @@ func ResourceBranchPolicyBuildValidation() *schema.Resource {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
+	settingsSchema[policyType] = &schema.Schema{
+		Type:     schema.TypeString,
+		Optional: true,
+		Default:  "Required",
+	}
 	return resource
 }
 
@@ -99,6 +106,7 @@ func buildValidationFlattenFunc(d *schema.ResourceData, policyConfig *policy.Pol
 	settings[queueOnSourceUpdateOnly] = policySettings.QueueOnSourceUpdateOnly
 	settings[validDuration] = policySettings.ValidDuration
 	settings[filenamePatterns] = policySettings.FilenamePatterns
+	settings[policyType] = policySettings.PolicyType
 
 	d.Set(SchemaSettings, settingsList)
 	return nil
@@ -120,6 +128,7 @@ func buildValidationExpandFunc(d *schema.ResourceData, typeID uuid.UUID) (*polic
 	policySettings["queueOnSourceUpdateOnly"] = settings[queueOnSourceUpdateOnly].(bool)
 	policySettings["validDuration"] = settings[validDuration].(int)
 	policySettings["filenamePatterns"] = expandFilenamePatterns(settings[filenamePatterns].([]interface{}))
+	policySettings["policyTypeRef"] = settings[policyType].(string)
 
 	return policyConfig, projectID, nil
 }
